@@ -9,9 +9,6 @@ set $right l
 set $term foot
 set $menu dmenu_path | wmenu | xargs swaymsg exec --
 
-# Output configuration
-output * bg @datadir@/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
-
 
 # Input configuration
 input * {
