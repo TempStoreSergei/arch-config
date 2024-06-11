@@ -5,7 +5,6 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
-home='/home/fsadmin'
 
 # Function to display error messages in red
 error_msg() {
@@ -51,16 +50,6 @@ packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot"
 
 # Install packages with progress
 install_packages "${packages[@]}"
-
-# Clone the repository
-info_msg "Cloning the repository..."
-git clone https://codeberg.org/bagnaram/menu-iwd.git "$home/bin/menu-iwd" || {
-    error_msg "Failed to clone the repository."
-    exit 1
-}
-
-# Change directory to cloned repository
-cd "$home/bin/menu-iwd" || exit
 
 # Check if seatd service is already enabled
 if sudo systemctl is-enabled --quiet seatd; then
