@@ -63,8 +63,8 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-# Start unclutter to hide mouse cursor when idle
-exec_always --no-startup-id unclutter -idle 0.1
+# Hide cursor after 5 seconds of inactivity
+seat * hide_cursor 0.01
 
 # Start Chromium in kiosk mode with specified flags
 exec_always --no-startup-id chromium --ignore-gpu-blacklist --disable-gpu --disable-gpu-compositing --hide-scrollbars --kiosk --allow-running-insecure-content --ozone-platform-hint=auto
