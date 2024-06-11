@@ -87,18 +87,6 @@ else
     }
 fi
 
-# Check if NetworkManager service is already enabled
-if sudo systemctl is-enabled --quiet NetworkManager; then
-    info_msg "NetworkManager service is already enabled."
-else
-    # Enable and start NetworkManager service
-    info_msg "Enabling and starting NetworkManager service..."
-    sudo systemctl enable NetworkManager && sudo systemctl start NetworkManager || {
-        error_msg "Failed to enable/start Nginx service."
-        exit 1
-    }
-fi
-
 # Check if user 'fsadmin' already exists
 if id "fsadmin" &>/dev/null; then
     info_msg "User 'fsadmin' already exists."
@@ -137,22 +125,6 @@ sudo cp sway_config /home/fsadmin/.config/sway/config && sudo chown fsadmin:fsad
     exit 1
 }
 
-# Clone nm-tray from AUR
-info_msg "Cloning nm-tray from AUR..."
-git clone https://aur.archlinux.org/nm-tray.git /home/kiosk/nm-tray &>/dev/null || {
-    error_msg "Failed to clone nm-tray from AUR"
-    exit 1
-}
-
-# Build and install nm-tray
-info_msg "Building and installing nm-tray..."
-cd /home/kiosk/nm-tray
-makepkg -si --noconfirm &>/dev/null || {
-    error_msg "Failed to build and install nm-tray"
-    exit 1
-}
-cd ~
-rm -rf /home/kiosk/nm-tray
 
 # Set up autologin for the user 'fsadmin'
 info_msg "Setting up autologin for fsadmin..."
