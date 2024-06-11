@@ -8,10 +8,9 @@ set $up k
 set $right l
 set $term foot
 
-
 # Input configuration
 input * {
-    xkb_layout "us,ru"
+    xkb_layout "en,ru"
     xkb_variant "colemak,,typewriter"
     xkb_options "grp:win_space_toggle"
 }
@@ -63,6 +62,8 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
+# Start unclutter to hide mouse cursor when idle
+exec_always --no-startup-id unclutter -idle 0.1
+
 # Start Chromium in kiosk mode with specified flags
 exec_always --no-startup-id chromium --ignore-gpu-blacklist --disable-gpu --disable-gpu-compositing --hide-scrollbars --kiosk --allow-running-insecure-content --ozone-platform-hint=auto
-
