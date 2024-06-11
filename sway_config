@@ -3,6 +3,7 @@
 # Variables
 set $left h
 set $down j
+set $mod Mod4
 set $up k
 set $right l
 set $term foot
