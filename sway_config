@@ -17,8 +17,6 @@ input * {
     xkb_options "grp:win_space_toggle"
 }
 
-input <identifier> xkb_model "pc101"
-
 # Key bindings
 bindsym $mod+Return exec $term
 bindsym $mod+Shift+q kill
