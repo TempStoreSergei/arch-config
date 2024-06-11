@@ -41,7 +41,7 @@ sudo systemctl start nginx
 
 # Create a new user 'fsadmin' with password 'admin'
 echo "Creating user 'fsadmin'..."
-sudo useradd -m -G seatd fsadmin
+sudo useradd -m -G seat fsadmin
 echo "fsadmin:admin" | sudo chpasswd
 
 # Create a directory for Sway configuration
