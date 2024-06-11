@@ -46,7 +46,7 @@ sudo pacman -Syu --noconfirm || {
 }
 
 # List of necessary packages
-packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot")
+packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "unclutter")
 
 # Install packages with progress
 install_packages "${packages[@]}"
@@ -131,18 +131,18 @@ sudo mkdir -p /etc/systemd/system/getty@tty1.service.d || {
     error_msg "Failed to create autologin configuration directory."
     exit 1
 }
-cat <<EOF | sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf
-[Service]
+echo "[Service]
 ExecStart=
-ExecStart=-/usr/bin/agetty --autologin fsadmin --noclear %I \$TERM
-EOF
+ExecStart=-/usr/bin/agetty --autologin fsadmin --noclear %I \$TERM" | sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null
 
 # Enable Sway to start on login
 info_msg "Enabling Sway to start on login..."
-cat <<EOF | sudo -u fsadmin tee /home/fsadmin/.bash_profile
-if [ -z "\$WAYLAND_DISPLAY" ] && [ "\$XDG_VTNR" = 1 ]; then
+echo "if [ -z \"\$WAYLAND_DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
     exec sway
-fi
-EOF
+fi" | sudo -u fsadmin tee /home/fsadmin/.bash_profile > /dev/null
+
+# Configure unclutter to hide mouse cursor when inactive
+info_msg "Configuring unclutter to hide mouse cursor..."
+echo "exec_always --no-startup-id unclutter -idle 0.5" | sudo -u fsadmin tee -a /home/fsadmin/.config/sway/config > /dev/null
 
 success_msg "Setup complete. Please reboot the system."
