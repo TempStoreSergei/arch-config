@@ -46,7 +46,7 @@ sudo pacman -Syu --noconfirm || {
 }
 
 # List of necessary packages
-packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "unclutter")
+packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "unclutter" "wl-clipboard")
 
 # Install packages with progress
 install_packages "${packages[@]}"
@@ -140,9 +140,5 @@ info_msg "Enabling Sway to start on login..."
 echo "if [ -z \"\$WAYLAND_DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
     exec sway
 fi" | sudo -u fsadmin tee /home/fsadmin/.bash_profile > /dev/null
-
-# Configure unclutter to hide mouse cursor when inactive
-info_msg "Configuring unclutter to hide mouse cursor..."
-echo "exec_always --no-startup-id unclutter -idle 0.5" | sudo -u fsadmin tee -a /home/fsadmin/.config/sway/config > /dev/null
 
 success_msg "Setup complete. Please reboot the system."
