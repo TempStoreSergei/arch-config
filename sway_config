@@ -73,6 +73,7 @@ bindsym $mod+space focus mode_toggle
 bindsym $mod+a focus parent
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
+bindsym $mod+e exec nemo
 
 mode "resize" {
     bindsym $left resize shrink width 10px
