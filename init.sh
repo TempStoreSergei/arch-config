@@ -5,6 +5,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
+home='/home/fsadmin'
 
 # Function to display error messages in red
 error_msg() {
@@ -53,13 +54,13 @@ install_packages "${packages[@]}"
 
 # Clone the repository
 info_msg "Cloning the repository..."
-git clone https://codeberg.org/bagnaram/menu-iwd.git "$HOME/bin/menu-iwd" || {
+git clone https://codeberg.org/bagnaram/menu-iwd.git "$home/bin/menu-iwd" || {
     error_msg "Failed to clone the repository."
     exit 1
 }
 
 # Change directory to cloned repository
-cd "$HOME/bin/menu-iwd" || exit
+cd "$home/bin/menu-iwd" || exit
 
 # Check if seatd service is already enabled
 if sudo systemctl is-enabled --quiet seatd; then
@@ -134,6 +135,7 @@ sudo cp sway_config /home/fsadmin/.config/sway/config && sudo chown fsadmin:fsad
     error_msg "Failed to copy Sway config file."
     exit 1
 }
+
 
 # Set up autologin for the user 'fsadmin'
 info_msg "Setting up autologin for fsadmin..."
