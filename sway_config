@@ -64,8 +64,7 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-# Hide cursor after 5 seconds of inactivity
-seat * hide_cursor 0.01
-
+# Hide cursor after of inactivity
+seat * hide_cursor 1
 # Start Chromium in kiosk mode with specified flags
 exec_always --no-startup-id chromium --ignore-gpu-blacklist --disable-gpu --disable-gpu-compositing --hide-scrollbars --kiosk --allow-running-insecure-content --ozone-platform-hint=auto
