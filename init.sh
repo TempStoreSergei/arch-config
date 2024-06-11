@@ -51,6 +51,16 @@ packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot"
 # Install packages with progress
 install_packages "${packages[@]}"
 
+# Clone the repository
+info_msg "Cloning the repository..."
+git clone https://codeberg.org/bagnaram/menu-iwd.git "$HOME/bin/menu-iwd" || {
+    error_msg "Failed to clone the repository."
+    exit 1
+}
+
+# Change directory to cloned repository
+cd "$HOME/bin/menu-iwd" || exit
+
 # Check if seatd service is already enabled
 if sudo systemctl is-enabled --quiet seatd; then
     info_msg "seatd service is already enabled."
