@@ -64,4 +64,4 @@ bindsym $mod+r mode "resize"
 
 # Start Chromium in kiosk mode with specified flags
 exec_always --no-startup-id chromium --ignore-gpu-blacklist --disable-gpu --disable-gpu-compositing --hide-scrollbars --kiosk --allow-running-insecure-content --ozone-platform-hint=auto
-exec_always --no-startup-id unclutter -idle 0.01
+
