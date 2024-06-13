@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # Source the functions script
 source functions.sh
@@ -15,14 +16,26 @@ update_system() {
 # Function to install packages
 install_packages() {
     local packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard" "wget")
-    install_packages "${packages[@]}"
+    for package in "${packages[@]}"; do
+        if ! sudo pacman -S --noconfirm "$package"; then
+            error_msg "Failed to install $package"
+            exit 1
+        fi
+    done
 }
 
 # Function to enable and start services
 enable_and_start_services() {
     local services=("seatd" "sshd" "nginx")
     for service in "${services[@]}"; do
-        enable_service "$service"
+        if ! sudo systemctl enable "$service"; then
+            error_msg "Failed to enable $service"
+            exit 1
+        fi
+        if ! sudo systemctl start "$service"; then
+            error_msg "Failed to start $service"
+            exit 1
+        fi
     done
 }
 
