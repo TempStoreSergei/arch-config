@@ -228,13 +228,13 @@ setup_openvpn_server() {
     sudo cp pki/ca.crt /etc/openvpn/client/
 
     info_msg "Creating server configuration file..."
-    if ! sudo cp server.conf /etc/openvpn/server/server.conf; then
+    if ! sudo cp ~/arch-config/server.conf /etc/openvpn/server/server.conf; then
         error_msg "Failed to create server configuration file."
         exit 1
     fi
 
     info_msg "Creating client configuration file template..."
-    if ! sudo cp client.conf /etc/openvpn/client/client.conf; then
+    if ! sudo cp ~/arch-config/client.conf /etc/openvpn/client/client.conf; then
         error_msg "Failed to create client configuration file template."
         exit 1
     fi
