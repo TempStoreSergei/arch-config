@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # Source the functions script
 source functions.sh
@@ -14,7 +15,7 @@ update_system() {
 
 # Function to install packages
 install_packages() {
-    local packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard" "wget")
+    local packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard" "wget" "openvpn" "easy-rsa")
     for package in "${packages[@]}"; do
         if ! sudo pacman -S --noconfirm "$package"; then
             error_msg "Failed to install $package"
@@ -25,7 +26,7 @@ install_packages() {
 
 # Function to enable and start services
 enable_and_start_services() {
-    local services=("seatd" "sshd" "nginx")
+    local services=("seatd" "sshd" "nginx" "openvpn-server@server" "cloak-server")
     for service in "${services[@]}"; do
         if ! sudo systemctl enable "$service"; then
             error_msg "Failed to enable $service"
@@ -176,43 +177,108 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-    info_msg "Reloading systemd, enabling and starting the Cloak service..."
+    info_msg "Reloading systemd..."
     sudo systemctl daemon-reload || {
         error_msg "Failed to reload systemd."
         exit 1
     }
-
-    sudo systemctl enable cloak-server.service || {
-        error_msg "Failed to enable Cloak service."
-        exit 1
-    }
-
-    sudo systemctl start cloak-server.service || {
-        error_msg "Failed to start Cloak service."
-        exit 1
-    }
-
-    info_msg "Ensuring ports 80 and 443 are open..."
-    sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 }
 
-# Function to update OpenVPN configuration
-update_openvpn_config() {
+# Function to setup OpenVPN server
+setup_openvpn_server() {
+    info_msg "Setting up OpenVPN server..."
+
+    info_msg "Initializing the PKI and building the CA..."
+    cd /etc/easy-rsa || exit 1
+    sudo rm -rf /etc/easy-rsa/pki
+    sudo easyrsa init-pki
+    echo -e "yes\n" | sudo easyrsa build-ca nopass
+
+    info_msg "Generating server certificate and key..."
+    sudo easyrsa gen-req server nopass
+    echo -e "yes\n" | sudo easyrsa sign-req server server
+
+    info_msg "Generating Diffie-Hellman parameters..."
+    sudo easyrsa gen-dh
+
+    info_msg "Generating client certificate and key..."
+    sudo easyrsa gen-req client nopass
+    echo -e "yes\n" | sudo easyrsa sign-req client client
+
+    info_msg "Copying keys and certificates to OpenVPN directory..."
+    sudo cp pki/private/server.key /etc/openvpn/server/
+    sudo cp pki/issued/server.crt /etc/openvpn/server/
+    sudo cp pki/ca.crt /etc/openvpn/server/
+    sudo cp pki/dh.pem /etc/openvpn/server/
+    sudo cp pki/private/client.key /etc/openvpn/client/
+    sudo cp pki/issued/client.crt /etc/openvpn/client/
+    sudo cp pki/ca.crt /etc/openvpn/client/
+
+    info_msg "Creating server configuration file..."
+    sudo tee /etc/openvpn/server/server.conf > /dev/null <<EOF
+port 1194
+proto udp
+dev tun
+ca /etc/openvpn/server/ca.crt
+cert /etc/openvpn/server/server.crt
+key /etc/openvpn/server/server.key
+dh /etc/openvpn/server/dh.pem
+server 10.8.0.0 255.255.255.0
+ifconfig-pool-persist /var/log/openvpn/ipp.txt
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
+keepalive 10 120
+tls-auth /etc/openvpn/ta.key 0
+cipher AES-256-CBC
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-status.log
+log-append /var/log/openvpn/openvpn.log
+verb 3
+EOF
+
+    info_msg "Creating client configuration file template..."
+    sudo tee /etc/openvpn/client/client.conf > /dev/null <<EOF
+client
+dev tun
+proto udp
+remote YOUR_SERVER_IP 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+ca ca.crt
+cert client.crt
+key client.key
+tls-auth ta.key 1
+cipher AES-256-CBC
+verb 3
+EOF
+
+    info_msg "Generating TLS key for extra security..."
+    sudo openvpn --genkey --secret /etc/openvpn/ta.key
+
     info_msg "Updating OpenVPN configuration..."
-    sudo sed -i 's/^local .*/local 127.0.0.1/' /etc/openvpn/server.conf
-    sudo sed -i '/^dev tun/!s/^dev .*/dev tun/' /etc/openvpn/server.conf
+    sudo sed -i 's/^local .*/local 127.0.0.1/' /etc/openvpn/server/server.conf
+    sudo sed -i '/^dev tun/!s/^dev .*/dev tun/' /etc/openvpn/server/server.conf
 }
 
 # Main script execution
 update_system
 install_packages
-enable_and_start_services
 setup_user
 setup_sway_config
 setup_autologin
 setup_cloak_server
-update_openvpn_config
+setup_openvpn_server
+enable_and_start_services
+
+# Ensure ports 80 and 443 are open
+info_msg "Ensuring ports 80 and 443 are open..."
+sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 
 # Reboot system prompt
 success_msg "Setup complete. Please reboot the system."
