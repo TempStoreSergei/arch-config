@@ -184,9 +184,9 @@ EOF
 }
 
 # Function to setup OpenVPN server
-setup_openvpn_server() {
+function setup_openvpn_server() {
     info_msg "Setting up OpenVPN server..."
-    
+
     # Fix permissions for OpenVPN files and directories
     sudo chmod -R 777 /etc/openvpn/server
     sudo chmod -R 777 /etc/openvpn/client
@@ -239,8 +239,8 @@ ifconfig-pool-persist /var/log/openvpn/ipp.txt
 push "redirect-gateway def1 bypass-dhcp"
 push "dhcp-option DNS 8.8.8.8"
 push "dhcp-option DNS 8.8.4.4"
+push "route 192.168.1.0 255.255.255.0" # Change this to your local subnet
 keepalive 10 120
-tls-auth /etc/openvpn/ta.key 0
 cipher AES-256-CBC
 persist-key
 persist-tun
@@ -249,12 +249,20 @@ log-append /var/log/openvpn/openvpn.log
 verb 3
 EOF
 
+    info_msg "Enabling IP forwarding..."
+    sudo sed -i '/#net.ipv4.ip_forward=1/c\net.ipv4.ip_forward=1' /etc/sysctl.conf
+    sudo sysctl -p
+
+    info_msg "Configuring NAT for VPN traffic..."
+    sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o wlan0 -j MASQUERADE # Change wlan0 to your public interface
+    sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
+
     info_msg "Creating client configuration file template..."
     sudo tee /etc/openvpn/client/client.conf > /dev/null <<EOF
 client
 dev tun
 proto udp
-remote 127.0.0.1 1194
+remote YOUR_SERVER_IP 1194
 resolv-retry infinite
 nobind
 persist-key
@@ -263,7 +271,6 @@ remote-cert-tls server
 ca ca.crt
 cert client.crt
 key client.key
-tls-auth ta.key 1
 cipher AES-256-CBC
 verb 3
 EOF
@@ -275,6 +282,7 @@ EOF
     sudo sed -i 's/^local .*/local 127.0.0.1/' /etc/openvpn/server/server.conf
     sudo sed -i '/^dev tun/!s/^dev .*/dev tun/' /etc/openvpn/server/server.conf
 }
+
 
 # Main script execution
 update_system
