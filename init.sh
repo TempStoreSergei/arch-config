@@ -262,10 +262,6 @@ EOF
     sudo iptables -A FORWARD -s 10.8.0.0/24 -j ACCEPT
     sudo mkdir -p /etc/iptables
     sudo iptables-save | sudo tee /etc/iptables/iptables.rules > /dev/null
-
-    info_msg "Starting and enabling OpenVPN service..."
-    sudo systemctl enable openvpn-server@server
-    sudo systemctl start openvpn-server@server
 }
 
 # Main script execution
