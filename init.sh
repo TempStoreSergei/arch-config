@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 # Source the functions script
 source functions.sh
