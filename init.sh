@@ -186,14 +186,17 @@ EOF
 # Function to setup OpenVPN server
 setup_openvpn_server() {
     info_msg "Setting up OpenVPN server..."
-
+    
     # Fix permissions for OpenVPN files and directories
-    sudo chown -R root:root /etc/openvpn/server
+    sudo chown -R kiosk:kiosk /etc/openvpn/server
     sudo chmod -R 700 /etc/openvpn/server
-    sudo chown -R root:root /etc/openvpn/client
+    sudo chown -R kiosk:kiosk /etc/openvpn/client
     sudo chmod -R 700 /etc/openvpn/client
-    sudo chown nobody:nogroup /var/log/openvpn
+    sudo mkdir -p /var/log/openvpn
+    sudo chown kiosk:kiosk /var/log/openvpn   # Change ownership to kiosk
     sudo chmod 777 /var/log/openvpn
+    sudo mkdir -p /run/openvpn-server
+    sudo chown kiosk:kiosk /run/openvpn-server 
 
     info_msg "Initializing the PKI and building the CA..."
     cd /etc/easy-rsa || exit 1
