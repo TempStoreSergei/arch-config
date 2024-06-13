@@ -184,20 +184,22 @@ EOF
 }
 
 # Function to setup OpenVPN server
-function setup_openvpn_server() {
+setup_openvpn_server() {
     info_msg "Setting up OpenVPN server..."
 
-    # Fix permissions for OpenVPN files and directories
-    sudo chmod -R 777 /etc/openvpn/server
-    sudo chmod -R 777 /etc/openvpn/client
+    # Ensure proper permissions for OpenVPN directories and files
+    sudo mkdir -p /etc/openvpn/server
+    sudo chmod 755 /etc/openvpn/server
+    sudo mkdir -p /etc/openvpn/client
+    sudo chmod 755 /etc/openvpn/client
 
     # Ensure proper permissions for log directory
     sudo mkdir -p /var/log/openvpn
-    sudo chmod -R 777 /var/log/openvpn
+    sudo chmod 755 /var/log/openvpn
 
     # Ensure proper permissions for runtime directory
     sudo mkdir -p /run/openvpn-server
-    sudo chmod -R 777 /run/openvpn-server
+    sudo chmod 755 /run/openvpn-server
 
     info_msg "Initializing the PKI and building the CA..."
     cd /etc/easy-rsa || exit 1
@@ -226,27 +228,20 @@ function setup_openvpn_server() {
     sudo cp pki/ca.crt /etc/openvpn/client/
 
     info_msg "Creating server configuration file..."
-    sudo tee /etc/openvpn/server/server.conf > /dev/null <<EOF
-port 1194
-proto udp
-dev tun
-ca /etc/openvpn/server/ca.crt
-cert /etc/openvpn/server/server.crt
-key /etc/openvpn/server/server.key
-dh /etc/openvpn/server/dh.pem
-server 10.8.0.0 255.255.255.0
-ifconfig-pool-persist /var/log/openvpn/ipp.txt
-push "redirect-gateway def1 bypass-dhcp"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-keepalive 10 120
-cipher AES-256-CBC
-persist-key
-persist-tun
-status /var/log/openvpn/openvpn-status.log
-log-append /var/log/openvpn/openvpn.log
-verb 3
-EOF
+    if ! sudo cp server.conf /etc/openvpn/server/server.conf; then
+        error_msg "Failed to create server configuration file."
+        exit 1
+    fi
+
+    info_msg "Creating client configuration file template..."
+    if ! sudo cp client.conf /etc/openvpn/client/client.conf; then
+        error_msg "Failed to create client configuration file template."
+        exit 1
+    fi
+
+    info_msg "Generating TLS key for extra security..."
+    sudo openvpn --genkey --secret /etc/openvpn/ta.key
+    sudo chmod 600 /etc/openvpn/ta.key
 
     info_msg "Enabling IP forwarding..."
     echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
@@ -268,30 +263,9 @@ EOF
     sudo mkdir -p /etc/iptables
     sudo iptables-save | sudo tee /etc/iptables/iptables.rules > /dev/null
 
-    info_msg "Creating client configuration file template..."
-    sudo tee /etc/openvpn/client/client.conf > /dev/null <<EOF
-client
-dev tun
-proto udp
-remote YOUR_SERVER_IP 1194
-resolv-retry infinite
-nobind
-persist-key
-persist-tun
-remote-cert-tls server
-ca ca.crt
-cert client.crt
-key client.key
-cipher AES-256-CBC
-verb 3
-EOF
-
-    info_msg "Generating TLS key for extra security..."
-    sudo openvpn --genkey --secret /etc/openvpn/ta.key
-
-    info_msg "Updating OpenVPN configuration..."
-    sudo sed -i 's/^local .*/local 127.0.0.1/' /etc/openvpn/server/server.conf
-    sudo sed -i '/^dev tun/!s/^dev .*/dev tun/' /etc/openvpn/server/server.conf
+    info_msg "Starting and enabling OpenVPN service..."
+    sudo systemctl enable openvpn-server@server
+    sudo systemctl start openvpn-server@server
 }
 
 # Main script execution
