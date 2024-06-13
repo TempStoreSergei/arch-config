@@ -11,7 +11,7 @@ if ! sudo pacman -Syu --noconfirm; then
 fi
 
 # List of necessary packages
-packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard")
+packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard" "wget")
 
 # Install packages with progress
 install_packages "${packages[@]}"
