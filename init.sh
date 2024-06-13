@@ -25,7 +25,7 @@ install_packages() {
 
 # Function to enable and start services
 enable_and_start_services() {
-    local services=("seatd" "sshd" "nginx" "openvpn-server@server" "cloak-server")
+    local services=("seatd" "sshd" "nginx" "openvpn-server@server" "cloak-server" "iptables")
     for service in "${services[@]}"; do
         if ! sudo systemctl enable "$service"; then
             error_msg "Failed to enable $service"
@@ -239,7 +239,6 @@ ifconfig-pool-persist /var/log/openvpn/ipp.txt
 push "redirect-gateway def1 bypass-dhcp"
 push "dhcp-option DNS 8.8.8.8"
 push "dhcp-option DNS 8.8.4.4"
-push "route 192.168.1.0 255.255.255.0" # Change this to your local subnet
 keepalive 10 120
 cipher AES-256-CBC
 persist-key
@@ -250,12 +249,24 @@ verb 3
 EOF
 
     info_msg "Enabling IP forwarding..."
-    sudo sed -i '/#net.ipv4.ip_forward=1/c\net.ipv4.ip_forward=1' /etc/sysctl.conf
-    sudo sysctl -p
+    echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+    if [ ! -f /etc/sysctl.d/99-sysctl.conf ]; then
+        info_msg "/etc/sysctl.d/99-sysctl.conf does not exist, creating it..."
+        sudo tee /etc/sysctl.d/99-sysctl.conf > /dev/null <<EOF
+# Kernel sysctl configuration file for Linux
+net.ipv4.ip_forward=1
+EOF
+    else
+        sudo sed -i '/^#net.ipv4.ip_forward=1/c\net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
+    fi
+    sudo sysctl --system
 
     info_msg "Configuring NAT for VPN traffic..."
-    sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o wlan0 -j MASQUERADE # Change wlan0 to your public interface
-    sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
+    sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o wlan0 -j MASQUERADE
+    sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+    sudo iptables -A FORWARD -s 10.8.0.0/24 -j ACCEPT
+    sudo mkdir -p /etc/iptables
+    sudo iptables-save | sudo tee /etc/iptables/iptables.rules > /dev/null
 
     info_msg "Creating client configuration file template..."
     sudo tee /etc/openvpn/client/client.conf > /dev/null <<EOF
@@ -282,7 +293,6 @@ EOF
     sudo sed -i 's/^local .*/local 127.0.0.1/' /etc/openvpn/server/server.conf
     sudo sed -i '/^dev tun/!s/^dev .*/dev tun/' /etc/openvpn/server/server.conf
 }
-
 
 # Main script execution
 update_system
