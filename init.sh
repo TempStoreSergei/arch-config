@@ -243,7 +243,7 @@ EOF
 client
 dev tun
 proto udp
-remote YOUR_SERVER_IP 1194
+remote 127.0.0.1 1194
 resolv-retry infinite
 nobind
 persist-key
