@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Source the messages script
-source messages.sh
-
 # Function to ensure proper permissions for directories
 ensure_permissions() {
     local directories=("/etc/openvpn/server" "/etc/openvpn/client" "/var/log/openvpn" "/run/openvpn-server")
@@ -32,14 +29,13 @@ init_pki_and_ca() {
 # Function to generate server certificate and key
 generate_server_cert() {
     info_msg "Generating server certificate and key..."
-    if ! sudo easyrsa gen-req server nopass &>/dev/null; then
+    if ! sudo easyrsa --batch gen-req server nopass &>/dev/null; then
         error_msg "Failed to generate server certificate and key."
         exit 1
     fi
-    echo -e "yes\n" | sudo easyrsa sign-req server server &>/dev/null || { error_msg "Failed to sign server certificate."; exit 1; }
+    echo -e "yes\n" | sudo easyrsa --batch sign-req server server &>/dev/null || { error_msg "Failed to sign server certificate."; exit 1; }
     success_msg "Server certificate and key generated successfully."
 }
-
 # Function to generate Diffie-Hellman parameters
 generate_dh_params() {
     info_msg "Generating Diffie-Hellman parameters..."

@@ -59,10 +59,9 @@ enable_service() {
 
 # Function to update the system
 update_system() {
-    print_message "$YELLOW" "Updating the system..."
-    if ! sudo pacman -Syu --noconfirm; then
-        print_message "$RED" "Failed to update the system"
+    if ! sudo pacman -Syu --noconfirm &>/dev/null; then
+        error_msg "Failed to update the system"
         exit 1
     fi
-    print_message "$GREEN" "System updated successfully."
+    success_msg "System updated successfully."
 }
