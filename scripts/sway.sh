@@ -13,7 +13,7 @@ setup_sway_config() {
     success_msg "Sway configuration directory created successfully."
 
     info_msg "Copying Sway config file..."
-    if ! sudo cp sway_config "$config_file" || ! sudo chown fsadmin:fsadmin "$config_file"; then
+    if ! sudo cp conf/sway.conf "$config_file" || ! sudo chown fsadmin:fsadmin "$config_file"; then
         error_msg "Failed to copy Sway config file."
         exit 1
     fi
