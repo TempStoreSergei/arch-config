@@ -49,11 +49,11 @@ generate_dh_params() {
 # Function to generate client certificate and key
 generate_client_cert() {
     info_msg "Generating client certificate and key..."
-    if ! sudo easyrsa gen-req client nopass &>/dev/null; then
+    if ! sudo easyrsa --batch gen-req client nopass &>/dev/null; then
         error_msg "Failed to generate client certificate and key."
         exit 1
     fi
-    echo -e "yes\n" | sudo easyrsa sign-req client client &>/dev/null || { error_msg "Failed to sign client certificate."; exit 1; }
+    echo -e "yes\n" | sudo easyrsa --batch sign-req client client &>/dev/null || { error_msg "Failed to sign client certificate."; exit 1; }
     success_msg "Client certificate and key generated successfully."
 }
 
@@ -77,7 +77,7 @@ copy_keys_and_certs() {
 # Function to create server configuration file
 create_server_config() {
     info_msg "Creating server configuration file..."
-    if ! sudo cp openvpn-server.conf "/etc/openvpn/server/server.conf"; then
+    if ! sudo cp ../conf/openvpn-server.conf "/etc/openvpn/server/server.conf"; then
         error_msg "Failed to create server configuration file."
         exit 1
     fi
@@ -87,7 +87,7 @@ create_server_config() {
 # Function to create client configuration file template
 create_client_config_template() {
     info_msg "Creating client configuration file template..."
-    if ! sudo cp openvpn-client.conf "/etc/openvpn/client/client.conf"; then
+    if ! sudo cp ../conf/openvpn-client.conf "/etc/openvpn/client/client.conf"; then
         error_msg "Failed to create client configuration file template."
         exit 1
     fi
