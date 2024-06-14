@@ -2,34 +2,47 @@
 
 # Function to create user if it doesn't exist and add to the seat group
 setup_user() {
-    if id "fsadmin" &>/dev/null; then
-        info_msg "User 'fsadmin' already exists."
+    local username="fsadmin"
+    
+    if id "$username" &>/dev/null; then
+        info_msg "User '$username' already exists."
     else
-        info_msg "Creating user 'fsadmin'..."
-        if ! sudo useradd -m -G seat fsadmin || ! echo "fsadmin:admin" | sudo chpasswd; then
-            error_msg "Failed to create user 'fsadmin'."
+        info_msg "Creating user '$username'..."
+        if ! sudo useradd -m -G seat "$username" || ! echo "$username:admin" | sudo chpasswd; then
+            error_msg "Failed to create user '$username'."
             exit 1
         fi
+        success_msg "User '$username' created successfully."
     fi
 
-    if ! groups fsadmin | grep -q '\bseat\b'; then
-        info_msg "Adding user 'fsadmin' to seat group..."
-        if ! sudo usermod -aG seat fsadmin; then
-            error_msg "Failed to add user 'fsadmin' to seat group."
+    if ! groups "$username" | grep -q '\bseat\b'; then
+        info_msg "Adding user '$username' to seat group..."
+        if ! sudo usermod -aG seat "$username"; then
+            error_msg "Failed to add user '$username' to seat group."
             exit 1
         fi
+        success_msg "User '$username' added to seat group successfully."
     else
-        info_msg "User 'fsadmin' is already added to seat group."
+        info_msg "User '$username' is already added to seat group."
     fi
 }
 
-
 # Function to setup autologin
 setup_autologin() {
-    info_msg "Setting up autologin for fsadmin..."
-    sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-    sudo cp getty@tty1.service.d/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
+    local username="fsadmin"
+    
+    info_msg "Setting up autologin for $username..."
+    if ! sudo mkdir -p /etc/systemd/system/getty@tty1.service.d ||
+       ! sudo cp getty@tty1.service.d/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf; then
+        error_msg "Failed to setup autologin."
+        exit 1
+    fi
+    success_msg "Autologin setup for $username successfully."
 
     info_msg "Enabling Sway to start on login..."
-    sudo -u fsadmin cp bash_profile /home/fsadmin/.bash_profile
+    if ! sudo -u "$username" cp bash_profile /home/"$username"/.bash_profile; then
+        error_msg "Failed to enable Sway on login for $username."
+        exit 1
+    fi
+    success_msg "Sway enabled on login for $username successfully."
 }

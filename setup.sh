@@ -4,6 +4,7 @@
 source scripts/messages.sh
 source scripts/utils.sh
 source scripts/os.sh
+source scripts/user.sh
 
 # Path to JSON files
 packages_file="json/packages.json"
@@ -14,6 +15,15 @@ update_system
 
 # Read and install packages
 read_packages "$packages_file"
+
+# Create user if it doesn't exist and add to the seat group
+setup_user
+
+# Setup autologin
+setup_autologin
+
+# Setup Sway configuration
+setup_sway_config
 
 # Read services
 read_services "$services_file"
