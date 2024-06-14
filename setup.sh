@@ -5,6 +5,7 @@ source scripts/messages.sh
 source scripts/utils.sh
 source scripts/os.sh
 source scripts/user.sh
+source scripts/sway.sh
 
 # Path to JSON files
 packages_file="json/packages.json"
