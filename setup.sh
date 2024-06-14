@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Source the functions script
-source messages.sh
-source utils.sh
-source os.sh
+source scripts/messages.sh
+source scripts/utils.sh
+source scripts/os.sh
 
 # Path to JSON files
 packages_file="json/packages.json"
