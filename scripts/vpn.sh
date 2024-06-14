@@ -87,9 +87,8 @@ create_server_config() {
 
 # Function to create client configuration file template
 create_client_config_template() {
-    cd - &>/dev/null
     info_msg "Creating client configuration file template..."
-    if ! sudo conf/openvpn-client.conf "/etc/openvpn/client/client.conf"; then
+    if ! sudo cp conf/openvpn-client.conf "/etc/openvpn/client/client.conf"; then
         error_msg "Failed to create client configuration file template."
         exit 1
     fi
