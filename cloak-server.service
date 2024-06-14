@@ -1,0 +1,9 @@
+[Unit]
+Description=cloak-server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/ck-server -c /etc/cloak/ckserver.json
+
+[Install]
+WantedBy=multi-user.target
