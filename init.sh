@@ -79,19 +79,11 @@ setup_sway_config() {
 # Function to setup autologin
 setup_autologin() {
     info_msg "Setting up autologin for fsadmin..."
-    if ! sudo mkdir -p /etc/systemd/system/getty@tty1.service.d; then
-        error_msg "Failed to create autologin configuration directory."
-        exit 1
-    fi
-
-    echo "[Service]
-ExecStart=
-ExecStart=-/usr/bin/agetty --autologin fsadmin --noclear %I \$TERM" | sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null
+    sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
+    sudo cp getty@tty1.service.d/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
 
     info_msg "Enabling Sway to start on login..."
-    echo "if [ -z \"\$WAYLAND_DISPLAY\" ] && [ \"\$XDG_VTNR\" = 1 ]; then
-        exec sway
-    fi" | sudo -u fsadmin tee /home/fsadmin/.bash_profile > /dev/null
+    sudo -u fsadmin cp bash_profile /home/fsadmin/.bash_profile
 }
 
 # Function to download and setup Cloak server
@@ -103,16 +95,16 @@ setup_cloak_server() {
     fi
 
     info_msg "Making the file executable..."
-    chmod +x ck-server || {
+    if ! chmod +x ck-server; then
         error_msg "Failed to make the file executable."
         exit 1
-    }
+    fi
 
     info_msg "Moving the file to /usr/bin..."
-    sudo mv ck-server /usr/bin/ck-server || {
+    if ! sudo mv ck-server /usr/bin/ck-server; then
         error_msg "Failed to move the file to /usr/bin."
         exit 1
-    }
+    fi
 
     info_msg "Generating public and private keys..."
     local key_output
@@ -160,21 +152,7 @@ setup_cloak_server() {
 EOF
 
     info_msg "Creating systemd service file..."
-    sudo tee /etc/systemd/system/cloak-server.service > /dev/null <<EOF
-[Unit]
-Description=cloak-server
-After=network.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-Environment=CONFIG="/etc/cloak/ckserver.json"
-ExecStart=/usr/bin/ck-server -c "\$CONFIG"
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
+    sudo cp cloak-server.service /etc/systemd/system/cloak-server.service
 
     info_msg "Reloading systemd..."
     sudo systemctl daemon-reload || {
@@ -228,19 +206,16 @@ setup_openvpn_server() {
     sudo cp pki/ca.crt /etc/openvpn/client/
 
     info_msg "Creating server configuration file..."
-    if ! sudo cp ~/arch-config/server.conf /etc/openvpn/server/server.conf; then
-        error_msg "Failed to create server configuration file."
-        exit 1
-    fi
+    sudo cp openvpn-server.conf /etc/openvpn/server/server.conf
 
     info_msg "Creating client configuration file template..."
-    if ! sudo cp ~/arch-config/client.conf /etc/openvpn/client/client.conf; then
-        error_msg "Failed to create client configuration file template."
-        exit 1
-    fi
+    sudo cp openvpn-client.conf /etc/openvpn/client/client.conf
 
     info_msg "Generating TLS key for extra security..."
-    sudo openvpn --genkey --secret /etc/openvpn/ta.key
+    if ! sudo openvpn --genkey --secret /etc/openvpn/ta.key; then
+        error_msg "Failed to generate TLS key."
+        exit 1
+    fi
     sudo chmod 600 /etc/openvpn/ta.key
 
     info_msg "Enabling IP forwarding..."
@@ -252,16 +227,8 @@ setup_openvpn_server() {
 net.ipv4.ip_forward=1
 EOF
     else
-        sudo sed -i '/^#net.ipv4.ip_forward=1/c\net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
+        sudo sed -i '/^# Kernel sysctl configuration file for Linux$/a net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
     fi
-    sudo sysctl --system
-
-    info_msg "Configuring NAT for VPN traffic..."
-    sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o wlan0 -j MASQUERADE
-    sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-    sudo iptables -A FORWARD -s 10.8.0.0/24 -j ACCEPT
-    sudo mkdir -p /etc/iptables
-    sudo iptables-save | sudo tee /etc/iptables/iptables.rules > /dev/null
 }
 
 # Main script execution
@@ -273,11 +240,3 @@ setup_autologin
 setup_cloak_server
 setup_openvpn_server
 enable_and_start_services
-
-# Ensure ports 80 and 443 are open
-info_msg "Ensuring ports 80 and 443 are open..."
-sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-
-# Reboot system prompt
-success_msg "Setup complete. Please reboot the system."
