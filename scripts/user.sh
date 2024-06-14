@@ -33,14 +33,14 @@ setup_autologin() {
     
     info_msg "Setting up autologin for $username..."
     if ! sudo mkdir -p /etc/systemd/system/getty@tty1.service.d ||
-       ! sudo cp getty@tty1.service.d/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf; then
+       ! sudo cp conf/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf; then
         error_msg "Failed to setup autologin."
         exit 1
     fi
     success_msg "Autologin setup for $username successfully."
 
     info_msg "Enabling Sway to start on login..."
-    if ! sudo -u "$username" cp bash_profile /home/"$username"/.bash_profile; then
+    if ! sudo -u "$username" cp conf/bash_profile.conf /home/"$username"/.bash_profile; then
         error_msg "Failed to enable Sway on login for $username."
         exit 1
     fi
