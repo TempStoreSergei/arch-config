@@ -1,0 +1,16 @@
+{
+    "packages": [
+        "sway",
+        "seatd",
+        "python-pip",
+        "chromium",
+        "openssh",
+        "nginx",
+        "nemo",
+        "foot",
+        "wl-clipboard",
+        "wget",
+        "openvpn",
+        "easy-rsa"
+    ]
+}

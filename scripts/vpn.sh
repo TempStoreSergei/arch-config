@@ -1,92 +1,5 @@
 #!/bin/bash
 
-# Source the functions script
-source functions.sh
-
-# Function to update the system
-update_system() {
-    info_msg "Updating the system..."
-    if ! sudo pacman -Syu --noconfirm; then
-        error_msg "Failed to update the system"
-        exit 1
-    fi
-}
-
-# Function to install packages
-install_packages() {
-    local packages=("sway" "seatd" "python-pip" "chromium" "openssh" "nginx" "nemo" "foot" "wl-clipboard" "wget" "openvpn" "easy-rsa")
-    for package in "${packages[@]}"; do
-        if ! sudo pacman -S --noconfirm "$package"; then
-            error_msg "Failed to install $package"
-            exit 1
-        fi
-    done
-}
-
-# Function to enable and start services
-enable_and_start_services() {
-    local services=("seatd" "sshd" "nginx" "openvpn-server@server" "cloak-server" "iptables")
-    for service in "${services[@]}"; do
-        if ! sudo systemctl enable "$service"; then
-            error_msg "Failed to enable $service"
-            exit 1
-        fi
-        if ! sudo systemctl start "$service"; then
-            error_msg "Failed to start $service"
-            exit 1
-        fi
-    done
-}
-
-# Function to create user if it doesn't exist and add to the seat group
-setup_user() {
-    if id "fsadmin" &>/dev/null; then
-        info_msg "User 'fsadmin' already exists."
-    else
-        info_msg "Creating user 'fsadmin'..."
-        if ! sudo useradd -m -G seat fsadmin || ! echo "fsadmin:admin" | sudo chpasswd; then
-            error_msg "Failed to create user 'fsadmin'."
-            exit 1
-        fi
-    fi
-
-    if ! groups fsadmin | grep -q '\bseat\b'; then
-        info_msg "Adding user 'fsadmin' to seat group..."
-        if ! sudo usermod -aG seat fsadmin; then
-            error_msg "Failed to add user 'fsadmin' to seat group."
-            exit 1
-        fi
-    else
-        info_msg "User 'fsadmin' is already added to seat group."
-    fi
-}
-
-# Function to setup Sway configuration
-setup_sway_config() {
-    info_msg "Creating Sway configuration directory..."
-    if ! sudo -u fsadmin mkdir -p /home/fsadmin/.config/sway; then
-        error_msg "Failed to create Sway configuration directory."
-        exit 1
-    fi
-
-    info_msg "Copying Sway config file..."
-    if ! sudo cp sway_config /home/fsadmin/.config/sway/config || ! sudo chown fsadmin:fsadmin /home/fsadmin/.config/sway/config; then
-        error_msg "Failed to copy Sway config file."
-        exit 1
-    fi
-}
-
-# Function to setup autologin
-setup_autologin() {
-    info_msg "Setting up autologin for fsadmin..."
-    sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-    sudo cp getty@tty1.service.d/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
-
-    info_msg "Enabling Sway to start on login..."
-    sudo -u fsadmin cp bash_profile /home/fsadmin/.bash_profile
-}
-
-# Function to download and setup Cloak server
 setup_cloak_server() {
     info_msg "Downloading Cloak server executable..."
     if ! wget https://github.com/cbeuw/Cloak/releases/download/v2.7.0/ck-server-linux-amd64-v2.7.0 -O ck-server; then
@@ -161,7 +74,6 @@ EOF
     }
 }
 
-# Function to setup OpenVPN server
 setup_openvpn_server() {
     info_msg "Setting up OpenVPN server..."
 
@@ -230,13 +142,3 @@ EOF
         sudo sed -i '/^# Kernel sysctl configuration file for Linux$/a net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
     fi
 }
-
-# Main script execution
-update_system
-install_packages
-setup_user
-setup_sway_config
-setup_autologin
-setup_cloak_server
-setup_openvpn_server
-enable_and_start_services
