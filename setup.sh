@@ -26,6 +26,9 @@ setup_autologin
 # Setup Sway configuration
 setup_sway_config
 
+# Setup OpenVPN server
+setup_openvpn_server
+
 # Read services
 read_services "$services_file"
 

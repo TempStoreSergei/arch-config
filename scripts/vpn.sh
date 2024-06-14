@@ -1,135 +1,92 @@
 #!/bin/bash
 
-setup_cloak_server() {
-    info_msg "Downloading Cloak server executable..."
-    if ! wget https://github.com/cbeuw/Cloak/releases/download/v2.7.0/ck-server-linux-amd64-v2.7.0 -O ck-server; then
-        error_msg "Failed to download Cloak server executable."
-        exit 1
-    fi
+# Function to ensure proper permissions for directories
+ensure_permissions() {
+    local directories=("/etc/openvpn/server" "/etc/openvpn/client" "/var/log/openvpn" "/run/openvpn-server")
 
-    info_msg "Making the file executable..."
-    if ! chmod +x ck-server; then
-        error_msg "Failed to make the file executable."
-        exit 1
-    fi
-
-    info_msg "Moving the file to /usr/bin..."
-    if ! sudo mv ck-server /usr/bin/ck-server; then
-        error_msg "Failed to move the file to /usr/bin."
-        exit 1
-    fi
-
-    info_msg "Generating public and private keys..."
-    local key_output
-    key_output=$(/usr/bin/ck-server -key)
-    local public_key private_key
-    public_key=$(echo "$key_output" | grep "Your PUBLIC key is:" | awk '{print $5}')
-    private_key=$(echo "$key_output" | grep "Your PRIVATE key is:" | awk '{print $8}')
-    info_msg "Public Key: $public_key"
-    info_msg "Private Key: $private_key"
-
-    info_msg "Generating user and admin UIDs..."
-    local user_uid admin_uid
-    user_uid=$(/usr/bin/ck-server -uid | awk '{print $4}')
-    admin_uid=$(/usr/bin/ck-server -uid | awk '{print $4}')
-    info_msg "User UID: $user_uid"
-    info_msg "Admin UID: $admin_uid"
-
-    info_msg "Creating configuration directory..."
-    if ! sudo mkdir -p /etc/cloak; then
-        error_msg "Failed to create configuration directory."
-        exit 1
-    fi
-
-    info_msg "Creating the configuration file..."
-    sudo tee /etc/cloak/ckserver.json > /dev/null <<EOF
-{
-  "ProxyBook": {
-    "openvpn": [
-      "udp",
-      "127.0.0.1:51000"
-    ]
-  },
-  "BindAddr": [
-    ":443",
-    ":80"
-  ],
-  "BypassUID": [
-    "$user_uid"
-  ],
-  "RedirAddr": "dzen.ru",
-  "PrivateKey": "$private_key",
-  "AdminUID": "$admin_uid",
-  "DatabasePath": "userinfo.db"
-}
-EOF
-
-    info_msg "Creating systemd service file..."
-    sudo cp cloak-server.service /etc/systemd/system/cloak-server.service
-
-    info_msg "Reloading systemd..."
-    sudo systemctl daemon-reload || {
-        error_msg "Failed to reload systemd."
-        exit 1
-    }
+    for dir in "${directories[@]}"; do
+        if ! sudo mkdir -p "$dir" || ! sudo chmod 755 "$dir"; then
+            error_msg "Failed to set permissions for $dir."
+            exit 1
+        fi
+    done
+    success_msg "Permissions set successfully for OpenVPN directories."
 }
 
-setup_openvpn_server() {
-    info_msg "Setting up OpenVPN server..."
-
-    # Ensure proper permissions for OpenVPN directories and files
-    sudo mkdir -p /etc/openvpn/server
-    sudo chmod 755 /etc/openvpn/server
-    sudo mkdir -p /etc/openvpn/client
-    sudo chmod 755 /etc/openvpn/client
-
-    # Ensure proper permissions for log directory
-    sudo mkdir -p /var/log/openvpn
-    sudo chmod 755 /var/log/openvpn
-
-    # Ensure proper permissions for runtime directory
-    sudo mkdir -p /run/openvpn-server
-    sudo chmod 755 /run/openvpn-server
-
+# Function to initialize PKI and build CA
+init_pki_and_ca() {
     info_msg "Initializing the PKI and building the CA..."
     cd /etc/easy-rsa || exit 1
     sudo rm -rf /etc/easy-rsa/pki
     sudo easyrsa init-pki
     echo -e "yes\n" | sudo easyrsa build-ca nopass
+    success_msg "PKI initialized and CA built successfully."
+}
 
+# Function to generate server certificate and key
+generate_server_cert() {
     info_msg "Generating server certificate and key..."
     sudo easyrsa gen-req server nopass
     echo -e "yes\n" | sudo easyrsa sign-req server server
+    success_msg "Server certificate and key generated successfully."
+}
 
+# Function to generate Diffie-Hellman parameters
+generate_dh_params() {
     info_msg "Generating Diffie-Hellman parameters..."
     sudo easyrsa gen-dh
+    success_msg "Diffie-Hellman parameters generated successfully."
+}
 
+# Function to generate client certificate and key
+generate_client_cert() {
     info_msg "Generating client certificate and key..."
     sudo easyrsa gen-req client nopass
     echo -e "yes\n" | sudo easyrsa sign-req client client
+    success_msg "Client certificate and key generated successfully."
+}
 
+# Function to copy keys and certificates to OpenVPN directory
+copy_keys_and_certs() {
     info_msg "Copying keys and certificates to OpenVPN directory..."
-    sudo cp pki/private/server.key /etc/openvpn/server/
-    sudo cp pki/issued/server.crt /etc/openvpn/server/
-    sudo cp pki/ca.crt /etc/openvpn/server/
-    sudo cp pki/dh.pem /etc/openvpn/server/
-    sudo cp pki/private/client.key /etc/openvpn/client/
-    sudo cp pki/issued/client.crt /etc/openvpn/client/
-    sudo cp pki/ca.crt /etc/openvpn/client/
+    local openvpn_dir="/etc/openvpn/server"
+    sudo cp pki/private/server.key "$openvpn_dir/"
+    sudo cp pki/issued/server.crt "$openvpn_dir/"
+    sudo cp pki/ca.crt "$openvpn_dir/"
+    sudo cp pki/dh.pem "$openvpn_dir/"
+    sudo cp pki/private/client.key "/etc/openvpn/client/"
+    sudo cp pki/issued/client.crt "/etc/openvpn/client/"
+    sudo cp pki/ca.crt "/etc/openvpn/client/"
+    success_msg "Keys and certificates copied successfully."
+}
 
+# Function to create server configuration file
+create_server_config() {
     info_msg "Creating server configuration file..."
-    sudo cp openvpn-server.conf /etc/openvpn/server/server.conf
+    sudo cp conf/openvpn-server.conf "/etc/openvpn/server/server.conf"
+    success_msg "Server configuration file created successfully."
+}
 
+# Function to create client configuration file template
+create_client_config_template() {
     info_msg "Creating client configuration file template..."
-    sudo cp openvpn-client.conf /etc/openvpn/client/client.conf
+    sudo cp conf/openvpn-client.conf "/etc/openvpn/client/client.conf"
+    success_msg "Client configuration file template created successfully."
+}
 
+# Function to generate TLS key for extra security
+generate_tls_key() {
     info_msg "Generating TLS key for extra security..."
     if ! sudo openvpn --genkey --secret /etc/openvpn/ta.key; then
         error_msg "Failed to generate TLS key."
         exit 1
     fi
     sudo chmod 600 /etc/openvpn/ta.key
+    success_msg "TLS key generated successfully."
+}
 
+# Function to enable IP forwarding
+enable_ip_forwarding() {
     info_msg "Enabling IP forwarding..."
     echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
     if [ ! -f /etc/sysctl.d/99-sysctl.conf ]; then
@@ -141,4 +98,19 @@ EOF
     else
         sudo sed -i '/^# Kernel sysctl configuration file for Linux$/a net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
     fi
+    success_msg "IP forwarding enabled successfully."
+}
+
+# Function to setup OpenVPN server
+setup_openvpn_server() {
+    ensure_permissions
+    init_pki_and_ca
+    generate_server_cert
+    generate_dh_params
+    generate_client_cert
+    copy_keys_and_certs
+    create_server_config
+    create_client_config_template
+    generate_tls_key
+    enable_ip_forwarding
 }
