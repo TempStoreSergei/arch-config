@@ -15,8 +15,6 @@ ensure_permissions() {
 
 # Function to initialize PKI and build CA
 init_pki_and_ca() {
-    local prev_dir=$(pwd)  # Store current directory
-
     info_msg "Initializing the PKI and building the CA..."
     cd /etc/easy-rsa || { error_msg "Failed to change directory."; exit 1; }
     sudo rm -rf /etc/easy-rsa/pki &>/dev/null
@@ -26,8 +24,6 @@ init_pki_and_ca() {
     fi
     echo -e "server\n" | sudo easyrsa build-ca nopass &>/dev/null || { error_msg "Failed to build CA."; exit 1; }
     success_msg "PKI initialized and CA built successfully."
-
-    cd "$prev_dir" || { error_msg "Failed to return to previous directory."; exit 1; }
 }
 
 # Function to generate server certificate and key
@@ -80,6 +76,7 @@ copy_keys_and_certs() {
 
 # Function to create server configuration file
 create_server_config() {
+    cd - &>/dev/null
     info_msg "Creating server configuration file..."
     if ! sudo cp conf/openvpn-server.conf "/etc/openvpn/server/server.conf"; then
         error_msg "Failed to create server configuration file."
