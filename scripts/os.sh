@@ -36,19 +36,27 @@ install_packages() {
 
 # Function to enable and start a service
 # os.sh
+# os.sh
 enable_service() {
     local service="$1"
+    local already_enabled=false
+
     if sudo systemctl is-enabled --quiet "$service"; then
         print_message "$YELLOW" "$service service is already enabled."
+        already_enabled=true
     else
         print_message "$YELLOW" "Enabling and starting $service service..."
         if ! sudo systemctl enable "$service" && sudo systemctl start "$service"; then
             print_message "$RED" "Failed to enable/start $service service."
             exit 1
         fi
+    fi
+
+    if [ "$already_enabled" = false ]; then
         print_message "$GREEN" "$service service enabled and started successfully."
     fi
 }
+
 
 # Function to update the system
 update_system() {
