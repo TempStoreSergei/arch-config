@@ -35,6 +35,7 @@ install_packages() {
 
 
 # Function to enable and start a service
+# os.sh
 enable_service() {
     local service="$1"
     local already_enabled=false
@@ -53,9 +54,6 @@ enable_service() {
     if [ "$already_enabled" = false ]; then
         print_message "$GREEN" "$service service enabled and started successfully."
     fi
-
-    # Return whether the service was successfully enabled and started
-    return $already_enabled
 }
 
 

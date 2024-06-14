@@ -19,15 +19,6 @@ read_packages "$packages_file"
 read_services "$services_file"
 
 # Enable and start services
-all_already_enabled=true
 for service in "${services[@]}"; do
-    if ! enable_service "$service"; then
-        all_already_enabled=false
-    fi
+    enable_service "$service"
 done
-
-if [ "$all_already_enabled" = true ]; then
-    print_message "$GREEN" "All services are already enabled."
-else
-    print_message "$GREEN" "All services started successfully."
-fi
