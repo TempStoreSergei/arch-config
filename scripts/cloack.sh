@@ -68,7 +68,7 @@ setup_cloak_server() {
 EOF
 
     info_msg "Creating systemd service file..."
-    sudo cp cloak-server.service /etc/systemd/system/cloak-server.service.conf
+    sudo cp conf/cloak-server.service.conf /etc/systemd/system/cloak-server.service
 
     info_msg "Reloading systemd..."
     sudo systemctl daemon-reload || {
