@@ -5,7 +5,7 @@ ensure_permissions() {
     local directories=("/etc/openvpn/server" "/etc/openvpn/client" "/var/log/openvpn" "/run/openvpn-server")
 
     for dir in "${directories[@]}"; do
-        if ! sudo mkdir -p "$dir" &>/dev/null || ! sudo chmod -R openvpn:network "$dir" &>/dev/null; then
+        if ! sudo mkdir -p "$dir" &>/dev/null || ! sudo chown -R openvpn:network "$dir" &>/dev/null; then
             error_msg "Failed to set permissions for $dir."
             exit 1
         fi
