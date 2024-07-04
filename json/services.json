@@ -5,6 +5,7 @@
         "nginx",
         "openvpn-server@server",
         "cloak-server",
-        "iptables"
+        "iptables",
+        "systemd-networkd"
     ]
 }
