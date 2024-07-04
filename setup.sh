@@ -7,6 +7,7 @@ source scripts/os.sh
 source scripts/user.sh
 source scripts/sway.sh
 source scripts/vpn.sh
+source scripts/cloack.sh
 
 # Path to JSON files
 packages_file="json/packages.json"
@@ -29,6 +30,9 @@ setup_sway_config
 
 # Setup OpenVPN server
 setup_openvpn_server
+
+# Setup Cloak server
+setup_cloak_server
 
 # Read services
 read_services "$services_file"

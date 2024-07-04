@@ -106,22 +106,6 @@ generate_tls_key() {
     success_msg "TLS key generated successfully."
 }
 
-# Function to enable IP forwarding
-enable_ip_forwarding() {
-    info_msg "Enabling IP forwarding..."
-    echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward &>/dev/null
-    if [ ! -f /etc/sysctl.d/99-sysctl.conf ]; then
-        info_msg "/etc/sysctl.d/99-sysctl.conf does not exist, creating it..."
-        sudo tee /etc/sysctl.d/99-sysctl.conf &>/dev/null <<EOF
-# Kernel sysctl configuration file for Linux
-net.ipv4.ip_forward=1
-EOF
-    else
-        sudo sed -i '/^# Kernel sysctl configuration file for Linux$/a net.ipv4.ip_forward=1' /etc/sysctl.d/99-sysctl.conf
-    fi
-    success_msg "IP forwarding enabled successfully."
-}
-
 # Function to setup OpenVPN server
 setup_openvpn_server() {
     ensure_permissions
@@ -133,6 +117,5 @@ setup_openvpn_server() {
     create_server_config
     create_client_config_template
     generate_tls_key
-    enable_ip_forwarding
 }
 

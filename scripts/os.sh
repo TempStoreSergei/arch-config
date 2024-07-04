@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Function to install packages with total progress
