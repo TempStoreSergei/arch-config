@@ -8,6 +8,7 @@ source scripts/user.sh
 source scripts/sway.sh
 source scripts/vpn.sh
 source scripts/cloack.sh
+source scripts/env.sh
 
 # Path to JSON files
 packages_file="json/packages.json"
