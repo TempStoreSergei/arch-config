@@ -27,7 +27,7 @@ setup_cloak_server() {
     key_output=$(/usr/bin/ck-server -key)
     local public_key private_key
     public_key=$(echo "$key_output" | grep "Your PUBLIC key is:" | awk '{print $5}')
-    private_key=$(echo "$key_output" | grep "Your PRIVATE key is:" | awk '{print $8}')
+    private_key=$(echo "$key_output" | grep "Your PRIVATE key is (keep it secret):" | awk '{print $8}')
     info_msg "Public Key: $public_key"
     info_msg "Private Key: $private_key"
 
