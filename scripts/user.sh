@@ -22,10 +22,18 @@ setup_user() {
 # Function to setup autologin
 setup_autologin() {
     info_msg "Setting up autologin for $USERNAME..."
-    if ! sudo mkdir -p /etc/systemd/system/getty@tty1.service.d ||
-       ! sudo cp conf/override.conf /etc/systemd/system/getty@tty1.service.d/override.conf; then
+
+    # Ensure the target directory exists
+    if ! sudo mkdir -p /etc/systemd/system/getty@tty1.service.d; then
+        error_msg "Failed to create directory for autologin."
+        exit 1
+    fi
+
+    # Replace placeholder in the template and copy it to the target location
+    if ! sed "s/{USERNAME}/$USERNAME/g" conf/override.conf | sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null; then
         error_msg "Failed to setup autologin."
         exit 1
     fi
+
     success_msg "Autologin setup for $USERNAME successfully."
 }
