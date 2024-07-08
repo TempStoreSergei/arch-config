@@ -50,7 +50,7 @@ copy_bash_profile() {
     fi
 
     local source_bash_profile="conf/bash_profile.conf"
-    local target_bash_profile="$user_home/.bashrc"
+    local target_bash_profile="$user_home/.bash_profile"
 
     if ! sudo cp "$source_bash_profile" "$target_bash_profile"; then
         error_msg "Failed to copy .bash_profile for $USERNAME."
