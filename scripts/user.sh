@@ -49,7 +49,7 @@ copy_bash_profile() {
         exit 1
     fi
 
-    local source_bash_profile="conf/bash_profile"
+    local source_bash_profile="conf/bash_profile.conf"
     local target_bash_profile="$user_home/.bash_profile"
 
     if ! sudo cp "$source_bash_profile" "$target_bash_profile"; then
