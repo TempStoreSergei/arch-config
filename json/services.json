@@ -4,8 +4,6 @@
         "sshd",
         "nginx",
         "openvpn-server@server",
-        "cloak-server",
-        "iptables",
         "systemd-networkd"
     ]
 }
