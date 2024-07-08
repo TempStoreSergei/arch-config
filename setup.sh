@@ -22,6 +22,9 @@ read_packages "$packages_file"
 # Create user if it doesn't exist and add to the seat group
 setup_user
 
+# Config bush profile
+copy_bash_profile
+
 # Setup autologin
 setup_autologin
 

@@ -37,3 +37,25 @@ setup_autologin() {
 
     success_msg "Autologin setup for $USERNAME successfully."
 }
+
+copy_bash_profile() {
+    local user_home
+    user_home=$(eval echo "~$USERNAME")
+
+    info_msg "Copying .bash_profile for $USERNAME..."
+
+    if [ -z "$user_home" ] || [ ! -d "$user_home" ]; then
+        error_msg "Home directory for $USERNAME not found."
+        exit 1
+    fi
+
+    local source_bash_profile="conf/bash_profile"
+    local target_bash_profile="$user_home/.bash_profile"
+
+    if ! sudo cp "$source_bash_profile" "$target_bash_profile"; then
+        error_msg "Failed to copy .bash_profile for $USERNAME."
+        exit 1
+    fi
+
+    success_msg ".bash_profile copied for $USERNAME successfully."
+}

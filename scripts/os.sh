@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Function to install packages with total progress
-# os.sh
 install_packages() {
     local packages_file="$1"
     local packages=($(jq -r '.packages[]' "$packages_file"))
@@ -34,7 +33,6 @@ install_packages() {
 
 
 # Function to enable and start a service
-# os.sh
 enable_service() {
     local service="$1"
     local already_enabled=false
