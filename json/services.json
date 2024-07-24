@@ -4,6 +4,6 @@
         "sshd",
         "nginx",
         "openvpn-server@server",
-        "systemd-networkd"
+        "sddm"
     ]
 }

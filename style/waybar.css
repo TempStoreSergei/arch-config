@@ -1,0 +1,156 @@
+/* General Styles */
+* {
+    border: none;
+    border-radius: 0;
+    font-family: Liberation Mono; /* Ensure you have this font installed */
+    min-height: 20px;
+}
+
+/* Waybar Styling */
+window#waybar {
+    background: transparent; /* Transparent background for Waybar */
+}
+
+window#waybar.hidden {
+    opacity: 0.2; /* Less visible when hidden */
+}
+
+/* Workspaces Module */
+#workspaces {
+    margin-right: 8px;
+    border-radius: 10px;
+    background: #383c4a; /* Dark background for workspaces */
+}
+
+#workspaces button {
+    color: #7c818c; /* Light gray text for buttons */
+    background: transparent;
+    padding: 5px;
+    font-size: 18px;
+    transition: background 0.3s, color 0.3s;
+}
+
+#workspaces button.persistent {
+    color: #7c818c;
+    font-size: 12px; /* Smaller font size for persistent workspaces */
+}
+
+#workspaces button:hover {
+    color: #383c4a; /* Dark text on hover */
+    background: #7c818c; /* Light background on hover */
+}
+
+#workspaces button.focused {
+    color: white; /* White text for focused workspace */
+}
+
+/* Language Module */
+#language {
+    padding: 0 8px;
+    border-radius: 10px 0 0 10px;
+    color: #ffffff;
+    background: #383c4a; /* Consistent background color */
+}
+
+/* Keyboard State Module */
+#keyboard-state {
+    margin-right: 8px;
+    padding-right: 16px;
+    border-radius: 0 10px 10px 0;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Pacman (Updates) Module */
+#custom-pacman {
+    padding: 0 8px;
+    border-radius: 10px 0 0 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Mail Module */
+#custom-mail {
+    margin-right: 8px;
+    padding-right: 16px;
+    border-radius: 0 10px 10px 0;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Mode Module */
+#mode {
+    padding: 0 16px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Clock Module */
+#clock {
+    padding: 0 16px;
+    border-radius: 10px 0 0 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Memory Module */
+#custom-mem {
+    margin-right: 8px;
+    padding: 0 16px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Temperature Module */
+#temperature {
+    margin-right: 8px;
+    padding: 0 16px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+#temperature.critical {
+    background-color: #eb4d4b; /* Critical temperature background color */
+}
+
+#battery {
+    margin-right: 8px;
+    padding: 0 16px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+#battery.charging {
+    background-color: #26A65B; /* Green background for charging */
+}
+
+#battery.warning:not(.charging) {
+    background-color: #ffbe61; /* Warning color */
+    color: black;
+}
+
+#battery.critical:not(.charging) {
+    background-color: #f53c3c; /* Critical color */
+    color: #ffffff;
+    animation: blink 0.5s linear infinite alternate; /* Blinking effect for critical battery */
+}
+
+/* Tray Module */
+#tray {
+    padding: 0 16px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #383c4a;
+}
+
+/* Blinking Animation */
+@keyframes blink {
+    to {
+        background-color: #ffffff; /* Blinking effect background */
+        color: #000000; /* Blinking effect text color */
+    }
+}

@@ -13,6 +13,9 @@ source scripts/env.sh
 packages_file="json/packages.json"
 services_file="json/services.json"
 
+# Config pacman for better perfomance
+configure_pacman
+
 # Update system
 update_system
 

@@ -31,7 +31,6 @@ install_packages() {
     fi
 }
 
-
 # Function to enable and start a service
 enable_service() {
     local service="$1"
@@ -53,6 +52,24 @@ enable_service() {
     fi
 }
 
+# Function to configure pacman for optimal performance
+configure_pacman() {
+    clear
+    echo "Configuring Pacman for optimal performance..."
+    echo
+
+    # Enable colored output and parallel downloads in pacman
+    sudo sed -i 's/#Color/Color/' /etc/pacman.conf
+    sudo sed -i 's/#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+
+    # Update mirrorlist using reflector for the fastest mirrors
+    echo "Updating mirrorlist with the fastest mirrors..."
+    sudo reflector --country 'United States' --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+
+    # Display the updated mirrorlist
+    cat /etc/pacman.d/mirrorlist
+    sleep 2
+}
 
 # Function to update the system
 update_system() {
