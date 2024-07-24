@@ -23,6 +23,7 @@
         "file-roller",
         "polkit-gnome",
         "plymouth",
+        "sddm",
         "grim",
         "slurp",
         "wl-clipboard",
